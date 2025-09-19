@@ -223,23 +223,13 @@
                                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                                     </textFieldCell>
                                                                 </textField>
-                                                                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="N0V-ac-Acm">
-                                                                    <rect key="frame" x="221" y="1" width="169" height="18"/>
-                                                                    <buttonCell key="cell" type="check" title="Override Config Setting" bezelStyle="regularSquare" imagePosition="left" enabled="NO" inset="2" id="LW4-cA-3bB">
-                                                                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                                                        <font key="font" metaFont="system"/>
-                                                                    </buttonCell>
-                                                                </button>
                                                             </subviews>
                                                             <constraints>
                                                                 <constraint firstAttribute="bottom" secondItem="CE4-Aa-FiI" secondAttribute="bottom" id="C6j-LL-EqW"/>
                                                                 <constraint firstItem="CE4-Aa-FiI" firstAttribute="top" secondItem="U6z-Nd-V9b" secondAttribute="top" id="R0w-YS-L3a"/>
                                                                 <constraint firstItem="Mhw-SN-LJX" firstAttribute="centerY" secondItem="U6z-Nd-V9b" secondAttribute="centerY" id="TIq-6e-LcX"/>
                                                                 <constraint firstItem="Mhw-SN-LJX" firstAttribute="top" secondItem="U6z-Nd-V9b" secondAttribute="top" constant="2" id="UqD-mz-k4C"/>
-                                                                <constraint firstItem="N0V-ac-Acm" firstAttribute="centerY" secondItem="U6z-Nd-V9b" secondAttribute="centerY" id="WRt-tv-DDD"/>
-                                                                <constraint firstItem="N0V-ac-Acm" firstAttribute="leading" secondItem="CE4-Aa-FiI" secondAttribute="trailing" constant="8" symbolic="YES" id="es9-Rz-nuG"/>
                                                                 <constraint firstItem="CE4-Aa-FiI" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Mhw-SN-LJX" secondAttribute="trailing" constant="8" symbolic="YES" id="pnC-52-gB5"/>
-                                                                <constraint firstAttribute="trailing" secondItem="N0V-ac-Acm" secondAttribute="trailing" id="wx5-Fp-6zH"/>
                                                                 <constraint firstItem="Mhw-SN-LJX" firstAttribute="leading" secondItem="U6z-Nd-V9b" secondAttribute="leading" id="yVl-2b-AxR"/>
                                                             </constraints>
                                                         </customView>
@@ -517,7 +507,6 @@
                     <connections>
                         <outlet property="allowApiLanUsageSwitcher" destination="uj5-FG-2x5" id="QKh-ZT-Iie"/>
                         <outlet property="apiPortTextField" destination="xJH-gA-vcL" id="L8f-GZ-BYW"/>
-                        <outlet property="apiSecretOverrideButton" destination="N0V-ac-Acm" id="n9x-y4-XsR"/>
                         <outlet property="apiSecretTextField" destination="CE4-Aa-FiI" id="po3-LI-T3l"/>
                         <outlet property="ignoreListTextView" destination="JDw-FW-A2o" id="fhs-QW-Ug6"/>
                         <outlet property="ipv6Button" destination="buf-aL-Tkl" id="s3h-2l-ik5"/>

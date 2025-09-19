@@ -39,7 +39,7 @@ class ConfigManager {
 
         set {
             isRunningVariable.accept(newValue)
-			NotificationCenter.default.post(.init(name: .init("ClashRunningStateChanged")))
+            NotificationCenter.default.post(.init(name: .init("ClashRunningStateChanged")))
         }
     }
 
@@ -57,7 +57,8 @@ class ConfigManager {
         if ICloudManager.shared.useiCloud.value {
             ICloudManager.shared.getUrl { url in
                 guard let url = url else { return }
-                let configUrl = url.appendingPathComponent(Paths.configFileName(for: selectConfigName))
+                let configUrl = url.appendingPathComponent(
+                    Paths.configFileName(for: selectConfigName))
                 ConfigFileManager.shared.watchFile(path: configUrl.path)
             }
         } else {
@@ -75,39 +76,42 @@ class ConfigManager {
             UserDefaults.standard.set(newValue, forKey: "proxyPortAutoSet")
         }
     }
-	
-	var restoreSystemProxy: Bool {
-		get {
-			return UserDefaults.standard.bool(forKey: "restoreSystemProxy")
-		}
-		set {
-			UserDefaults.standard.set(newValue, forKey: "restoreSystemProxy")
-		}
-	}
-	
-	var restoreTunProxy: Bool {
-		get {
-			return UserDefaults.standard.bool(forKey: "restoreTunProxy")
-		}
-		set {
-			UserDefaults.standard.set(newValue, forKey: "restoreTunProxy")
-		}
-	}
 
-    let proxyPortAutoSetObservable = UserDefaults.standard.rx.observe(Bool.self, "proxyPortAutoSet").map { $0 ?? false }
+    var restoreSystemProxy: Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: "restoreSystemProxy")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "restoreSystemProxy")
+        }
+    }
+
+    var restoreTunProxy: Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: "restoreTunProxy")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "restoreTunProxy")
+        }
+    }
+
+    let proxyPortAutoSetObservable = UserDefaults.standard.rx.observe(Bool.self, "proxyPortAutoSet")
+        .map { $0 ?? false }
 
     var isProxySetByOtherVariable = BehaviorRelay<Bool>(value: false)
     var proxyShouldPaused = BehaviorRelay<Bool>(value: false)
 
     var isTunModeVariable = BehaviorRelay<Bool>(value: false)
-	
-	static let defaultTunDNS = "8.8.8.8"
-	
-	static var metaTunDNS: String = UserDefaults.standard.object(forKey: "metaTunDNS") as? String ?? defaultTunDNS {
-		didSet {
-			UserDefaults.standard.set(metaTunDNS, forKey: "metaTunDNS")
-		}
-	}
+
+    static let defaultTunDNS = "8.8.8.8"
+
+    static var metaTunDNS: String =
+        UserDefaults.standard.object(forKey: "metaTunDNS") as? String ?? defaultTunDNS
+    {
+        didSet {
+            UserDefaults.standard.set(metaTunDNS, forKey: "metaTunDNS")
+        }
+    }
 
     var showNetSpeedIndicator: Bool {
         get {
@@ -118,9 +122,13 @@ class ConfigManager {
         }
     }
 
-    let showNetSpeedIndicatorObservable = UserDefaults.standard.rx.observe(Bool.self, "showNetSpeedIndicator")
+    let showNetSpeedIndicatorObservable = UserDefaults.standard.rx.observe(
+        Bool.self, "showNetSpeedIndicator")
 
-    var benchMarkUrl: String = UserDefaults.standard.string(forKey: "benchMarkUrl") ?? "http://cp.cloudflare.com/generate_204" {
+    var benchMarkUrl: String =
+        UserDefaults.standard.string(forKey: "benchMarkUrl")
+        ?? "http://cp.cloudflare.com/generate_204"
+    {
         didSet {
             UserDefaults.standard.set(benchMarkUrl, forKey: "benchMarkUrl")
         }
@@ -130,11 +138,15 @@ class ConfigManager {
         if let override = shared.overrideApiURL {
             return override.absoluteString
         }
-        return "http://127.0.0.1:\(shared.apiPort)"
+        // 优先使用用户在界面设置的端口
+        let port = Settings.apiPort > 0 ? "\(Settings.apiPort)" : shared.apiPort
+        return "http://127.0.0.1:\(port)"
     }
 
     static var webSocketUrl: String {
-        if let override = shared.overrideApiURL, var comp = URLComponents(url: override, resolvingAgainstBaseURL: true) {
+        if let override = shared.overrideApiURL,
+            var comp = URLComponents(url: override, resolvingAgainstBaseURL: true)
+        {
             if comp.scheme == "https" {
                 comp.scheme = "wss"
             } else {
@@ -142,7 +154,9 @@ class ConfigManager {
             }
             return comp.url?.absoluteString ?? ""
         }
-        return "ws://127.0.0.1:\(shared.apiPort)"
+        // 优先使用用户在界面设置的端口
+        let port = Settings.apiPort > 0 ? "\(Settings.apiPort)" : shared.apiPort
+        return "ws://127.0.0.1:\(port)"
     }
 
     static var selectedProxyRecords = SavedProxyModel.loadsFromUserDefault() {
@@ -153,7 +167,8 @@ class ConfigManager {
 
     static var selectOutBoundMode: ClashProxyMode {
         get {
-            return ClashProxyMode(rawValue: UserDefaults.standard.string(forKey: "selectOutBoundMode") ?? "") ?? .rule
+            return ClashProxyMode(
+                rawValue: UserDefaults.standard.string(forKey: "selectOutBoundMode") ?? "") ?? .rule
         }
         set {
             UserDefaults.standard.set(newValue.rawValue, forKey: "selectOutBoundMode")
@@ -171,16 +186,22 @@ class ConfigManager {
 
     static var selectLoggingApiLevel: ClashLogLevel {
         get {
-            return ClashLogLevel(rawValue: UserDefaults.standard.string(forKey: "selectLoggingApiLevel") ?? "") ?? .info
+            return ClashLogLevel(
+                rawValue: UserDefaults.standard.string(forKey: "selectLoggingApiLevel") ?? "")
+                ?? .info
         }
         set {
             UserDefaults.standard.set(newValue.rawValue, forKey: "selectLoggingApiLevel")
         }
     }
 
-    var disableShowCurrentProxyInMenu: Bool = UserDefaults.standard.object(forKey: "kSDisableShowCurrentProxyInMenu") as? Bool ?? !AppDelegate.isAboveMacOS14 {
+    var disableShowCurrentProxyInMenu: Bool =
+        UserDefaults.standard.object(forKey: "kSDisableShowCurrentProxyInMenu") as? Bool
+        ?? !AppDelegate.isAboveMacOS14
+    {
         didSet {
-            UserDefaults.standard.set(disableShowCurrentProxyInMenu, forKey: "kSDisableShowCurrentProxyInMenu")
+            UserDefaults.standard.set(
+                disableShowCurrentProxyInMenu, forKey: "kSDisableShowCurrentProxyInMenu")
         }
     }
 
@@ -190,7 +211,8 @@ class ConfigManager {
                 guard let url = url else {
                     return
                 }
-                let configPath = url.appendingPathComponent(Paths.configFileName(for: configName)).path
+                let configPath = url.appendingPathComponent(Paths.configFileName(for: configName))
+                    .path
                 complete?(configPath)
             }
         } else {
@@ -204,7 +226,8 @@ extension ConfigManager {
     static func getConfigFilesList() -> [String] {
         do {
             let fileURLs = try FileManager.default.contentsOfDirectory(atPath: kConfigFolderPath)
-            return fileURLs
+            return
+                fileURLs
                 .filter { String($0.split(separator: ".").last ?? "") == "yaml" }
                 .map { $0.split(separator: ".").dropLast().joined(separator: ".") }
         } catch {
@@ -223,7 +246,8 @@ extension ConfigManager {
     static var webDashboard: WebDashboard {
         get {
             guard let string = UserDefaults.standard.object(forKey: "webDashboard") as? String,
-                  let dashboard = WebDashboard(rawValue: string) else {
+                let dashboard = WebDashboard(rawValue: string)
+            else {
                 return .zashboard
             }
             return dashboard
@@ -232,16 +256,20 @@ extension ConfigManager {
             UserDefaults.standard.set(newValue.rawValue, forKey: "webDashboard")
         }
     }
-	
-	static var useSwiftUIDashboard: Bool = UserDefaults.standard.object(forKey: "useSwiftUIDashboard") as? Bool ?? false {
-		didSet {
-			UserDefaults.standard.set(useSwiftUIDashboard, forKey: "useSwiftUIDashboard")
-		}
-	}
-	
-	static var useAlphaCore: Bool = UserDefaults.standard.object(forKey: "useAlphaCore") as? Bool ?? false {
-		didSet {
-			UserDefaults.standard.set(useAlphaCore, forKey: "useAlphaCore")
-		}
-	}
+
+    static var useSwiftUIDashboard: Bool =
+        UserDefaults.standard.object(forKey: "useSwiftUIDashboard") as? Bool ?? false
+    {
+        didSet {
+            UserDefaults.standard.set(useSwiftUIDashboard, forKey: "useSwiftUIDashboard")
+        }
+    }
+
+    static var useAlphaCore: Bool =
+        UserDefaults.standard.object(forKey: "useAlphaCore") as? Bool ?? false
+    {
+        didSet {
+            UserDefaults.standard.set(useAlphaCore, forKey: "useAlphaCore")
+        }
+    }
 }

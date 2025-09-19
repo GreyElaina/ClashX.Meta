@@ -2,17 +2,17 @@
 //  ClashMetaConfig.swift
 //  ClashX Meta
 
-import Foundation
 import Cocoa
+import Foundation
 import Yams
 
 class ClashMetaConfig: NSObject {
-	static let initRulePayload = "ClashXMetaInitConfigQWERTYUIOP".lowercased()
+    static let initRulePayload = "ClashXMetaInitConfigQWERTYUIOP".lowercased()
 
     struct Config: Codable {
         var externalUI: String? = {
-			var subpath = "dashboard/"
-            
+            var subpath = "dashboard/"
+
             switch ConfigManager.webDashboard {
             case .yacd:
                 subpath += "yacd"
@@ -21,8 +21,11 @@ class ClashMetaConfig: NSObject {
             case .zashboard:
                 subpath += "zashboard"
             }
-            
-            guard let htmlPath = Bundle.main.path(forResource: "index", ofType: "html", inDirectory: subpath) else {
+
+            guard
+                let htmlPath = Bundle.main.path(
+                    forResource: "index", ofType: "html", inDirectory: subpath)
+            else {
                 return nil
             }
             return URL(fileURLWithPath: htmlPath).deletingLastPathComponent().path
@@ -36,58 +39,78 @@ class ClashMetaConfig: NSObject {
         var mixedPort: Int?
 
         var geodataMode: Bool?
-		var geoxUrl: [String: String]?
+        var geoxUrl: [String: String]?
 
         var logLevel = ConfigManager.selectLoggingApiLevel.rawValue
-		
-		var rules = ["DOMAIN-KEYWORD,\(initRulePayload),REJECT"]
-        
+
+        var rules = ["DOMAIN-KEYWORD,\(initRulePayload),REJECT"]
+
         var safePaths: String?
 
         var path: String {
-            get {
-                guard let s = try? YAMLEncoder().encode(self),
-                      let path = RemoteConfigManager.createCacheConfig(string: s) else {
-                    assertionFailure("Create init config file failed.")
-                    return ""
-                }
-                return path
+            guard let s = try? YAMLEncoder().encode(self),
+                let path = RemoteConfigManager.createCacheConfig(string: s)
+            else {
+                assertionFailure("Create init config file failed.")
+                return ""
             }
+            return path
         }
 
         enum CodingKeys: String, CodingKey {
-            case externalController = "external-controller",
-                 externalUI = "external-ui",
-                 mixedPort = "mixed-port",
-                 port,
-                 socksPort = "socks-port",
-                 logLevel = "log-level",
-                 geodataMode = "geodata-mode",
-				 geoxUrl = "geox-url",
-                 secret,
-				 rules
+            case externalController = "external-controller"
+            case
+                externalUI = "external-ui"
+            case
+                mixedPort = "mixed-port"
+            case
+                port
+            case
+                socksPort = "socks-port"
+            case
+                logLevel = "log-level"
+            case
+                geodataMode = "geodata-mode"
+            case
+                geoxUrl = "geox-url"
+            case
+                secret,
+                rules
         }
 
         mutating func loadDefaultConfigFile(_ path: String) {
             let fm = FileManager.default
             guard let data = fm.contents(atPath: path),
-                  let string = String(data: data, encoding: .utf8),
-                  let yaml = try? Yams.load(yaml: string) as? [String: Any] else {
+                let string = String(data: data, encoding: .utf8),
+                let yaml = try? Yams.load(yaml: string) as? [String: Any]
+            else {
                 return
             }
 
             let keys = Config.CodingKeys.self
-            if let ec = yaml[keys.externalController.rawValue] as? String {
+
+            // 优先使用 UI 设置的端口
+            if Settings.proxyPort > 0 {
+                mixedPort = Settings.proxyPort
+            } else if let mp = yaml[keys.mixedPort.rawValue] as? Int {
+                mixedPort = mp
+            }
+
+            if Settings.apiPort > 0 {
+                let apiPort = Settings.apiPort
+                externalController = "127.0.0.1:\(apiPort)"
+            } else if let ec = yaml[keys.externalController.rawValue] as? String {
                 externalController = ec
             }
 
-            if let s = yaml[keys.secret.rawValue] as? String {
+            // 优先使用 UI 设置的密钥
+            if !Settings.apiSecret.isEmpty {
+                secret = Settings.apiSecret
+            } else if let s = yaml[keys.secret.rawValue] as? String {
                 secret = s
             }
 
-            if let port = yaml[keys.mixedPort.rawValue] as? Int {
-                mixedPort = port
-            } else {
+            if mixedPort == nil {
                 if let p = yaml[keys.port.rawValue] as? Int {
                     port = p
                 }
@@ -99,15 +122,15 @@ class ClashMetaConfig: NSObject {
             if port == nil && mixedPort == nil {
                 mixedPort = 7890
             }
-			
-			if let urls = yaml[keys.geoxUrl.rawValue] as? [String: String] {
-				geoxUrl = urls
-			}
-			
-			if let mode = yaml[keys.geodataMode.rawValue] as? Bool {
-				geodataMode = mode
-			}
-				
+
+            if let urls = yaml[keys.geoxUrl.rawValue] as? [String: String] {
+                geoxUrl = urls
+            }
+
+            if let mode = yaml[keys.geodataMode.rawValue] as? Bool {
+                geodataMode = mode
+            }
+
         }
 
         mutating func updatePorts(_ usedPorts: String) {
@@ -140,7 +163,8 @@ class ClashMetaConfig: NSObject {
 
             let ecPort: Int = {
                 if let port = externalController.components(separatedBy: ":").last,
-                   let p = Int(port) {
+                    let p = Int(port)
+                {
                     return p
                 } else {
                     return 9090
@@ -161,7 +185,8 @@ class ClashMetaConfig: NSObject {
 
     static func updateConfigTun(_ config: Data, enable: Bool) -> String? {
         guard let s = String(data: config, encoding: .utf8),
-              var yaml = try? Yams.compose(yaml: s) else {
+            var yaml = try? Yams.compose(yaml: s)
+        else {
             return nil
         }
 
@@ -175,12 +200,13 @@ class ClashMetaConfig: NSObject {
                 "auto-detect-interface": "true",
                 "dns-hijack": [
                     "any:53"
-                ]
+                ],
             ]
         }
 
         guard let ss = try? Yams.serialize(node: yaml),
-              let path = RemoteConfigManager.createCacheConfig(string: ss) else {
+            let path = RemoteConfigManager.createCacheConfig(string: ss)
+        else {
             return nil
         }
         return path

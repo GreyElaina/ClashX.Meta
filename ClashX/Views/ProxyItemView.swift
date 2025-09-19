@@ -12,14 +12,14 @@ class ProxyItemView: MenuItemBaseView {
     let nameLabel: NSTextField
     let delayLabel: NSTextField
     var imageView: NSImageView?
-	
+
 	let isBuiltInProxy: Bool
 
     static let fixedPlaceHolderWidth: CGFloat = 20 + 50 + 25
 
     init(proxy: ClashProxy) {
 		isBuiltInProxy = ClashProxyType.isBuiltInProxy(proxy)
-		
+
         nameLabel = VibrancyTextField(labelWithString: proxy.name)
         delayLabel = VibrancyTextField(labelWithString: "").setup(allowsVibrancy: false)
         let cell = PaddedNSTextFieldCell()
@@ -67,7 +67,7 @@ class ProxyItemView: MenuItemBaseView {
                                   width: delayLabel.bounds.width,
                                   height: delayLabel.bounds.height)
     }
-	
+
 	func updateBuiltIn() {
 		delayLabel.stringValue = "IN"
 		needsLayout = true
@@ -79,7 +79,7 @@ class ProxyItemView: MenuItemBaseView {
 			updateBuiltIn()
 			return
 		}
-		
+
         delayLabel.stringValue = str ?? ""
         needsLayout = true
 
