@@ -480,12 +480,91 @@ extension ApiRequest {
 
     static func updateTun(enable: Bool, completeHandler: (() -> Void)? = nil) {
         Logger.log("update tun:\(enable)", level: .debug)
-        req("/configs",
-            method: .patch,
-            parameters: ["tun": ["enable": enable]],
-            encoding: JSONEncoding.default).response {
-            _ in
-            completeHandler?()
+
+        // 当启用TUN模式时，检查是否需要同时添加DNS配置
+        if enable {
+            // 首先检查当前配置是否有DNS - 通过获取原始配置数据
+            req("/configs").responseJSON { response in
+                switch response.result {
+                case let .success(json):
+                    if let dict = json as? [String: Any] {
+                        let needsDnsConfig = dict["dns"] == nil
+
+                        if needsDnsConfig {
+                            Logger.log("Adding DNS config for TUN mode", level: .info)
+                            // 同时更新TUN和DNS配置
+                            let parameters: [String: Any] = [
+                                "tun": ["enable": enable],
+                                "dns": [
+                                    "enable": true,
+                                    "prefer-h3": true,
+                                    "ipv6": false,
+                                    "enhanced-mode": "fake-ip",
+                                    "fake-ip-range": "198.18.0.1/16",
+                                    "respect-rules": true,
+                                    "nameserver": [
+                                        "system",
+                                        "https://223.5.5.5/dns-query",
+                                        "https://doh.pub/dns-query",
+                                    ],
+                                    "proxy-server-nameserver": [
+                                        "https://223.5.5.5/dns-query",
+                                        "https://doh.pub/dns-query",
+                                    ],
+                                ],
+                            ]
+                            self.req(
+                                "/configs",
+                                method: .patch,
+                                parameters: parameters,
+                                encoding: JSONEncoding.default
+                            ).response { _ in
+                                completeHandler?()
+                            }
+                        } else {
+                            // 只更新TUN配置
+                            self.req(
+                                "/configs",
+                                method: .patch,
+                                parameters: ["tun": ["enable": enable]],
+                                encoding: JSONEncoding.default
+                            ).response { _ in
+                                completeHandler?()
+                            }
+                        }
+                    } else {
+                        // JSON解析失败，只更新TUN配置
+                        self.req(
+                            "/configs",
+                            method: .patch,
+                            parameters: ["tun": ["enable": enable]],
+                            encoding: JSONEncoding.default
+                        ).response { _ in
+                            completeHandler?()
+                        }
+                    }
+                case .failure(_):
+                    // 请求失败，只更新TUN配置
+                    self.req(
+                        "/configs",
+                        method: .patch,
+                        parameters: ["tun": ["enable": enable]],
+                        encoding: JSONEncoding.default
+                    ).response { _ in
+                        completeHandler?()
+                    }
+                }
+            }
+        } else {
+            // 禁用TUN模式时，只更新TUN配置
+            req(
+                "/configs",
+                method: .patch,
+                parameters: ["tun": ["enable": enable]],
+                encoding: JSONEncoding.default
+            ).response { _ in
+                completeHandler?()
+            }
         }
     }
 
